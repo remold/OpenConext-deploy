@@ -60,3 +60,16 @@ trustedProxyIps[] = {{ engine_trusted_proxy_ip }}
 {% endfor %}
 
 {% endif %}
+
+cookie.lang.domain = ".{{ base_domain }}"
+defaults.title = "{{ product_name }}"
+defaults.header = "{{ product_name }}"
+edugain.publication.publisher = "https://engine.{{ base_domain }}/authentication/proxy/edugain-metadata"
+edugain.registration.authority = "http://www.{{ base_domain }}/"
+edugain.registration.policy = "{{ edugain_registration_policy }}"
+email.help = "help@{{ base_domain }}"
+email.idpDebugging.from.name = "{{ product_name } EngineBlock"
+email.idpDebugging.from.address = "noreply@{{ base_domain }}"
+email.idpDebugging.to.address = "{{ email.idpDebugging.to.address }}"
+email.idpDebugging.to.name = "{{ email_idpDebugging_to_name }}"
+openconext.termsOfUse = "{{ openconext_termsOfUse }}"
