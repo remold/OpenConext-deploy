@@ -2,7 +2,7 @@
 env: vm
 
 smtp_server: localhost
-error_mail_to: no-mail-on-vm@surfconext.nl
+error_mail_to: no-mail-on-vm@{{ base_domain }}
 
 databases:
   names:
@@ -28,15 +28,15 @@ tls_https:
   crt_name: star.{{ base_domain }}.pem
   bundle_name: star.{{ base_domain }}_ca_bundle.pem
 
-apache_server_admin: unix@prolocation.net
+apache_server_admin: apache@{{ base_domain }}
 
-janus_ssp_technicalcontact_name: "Surfconext beheer"
-janus_ssp_technicalcontact_email: "surfconext-beheer@surfnet.nl"
-janus_ssp_managingcontact_name: "Surfconext beheer"
-janus_ssp_managingcontact_email: "surfconext-beheer@surfnet.nl"
+janus_ssp_technicalcontact_name: "{{ product_name }} Administrator"
+janus_ssp_technicalcontact_email: "{{ product_name}}@{{ base_domain }}"
+janus_ssp_managingcontact_name: "{{ product_name }} Administrator"
+janus_ssp_managingcontact_email: "{{ product_name}}@{{ base_domain }}"
 
 
-engine_idp_debugging_email_address: coin-logs-dev@list.surfnet.nl
+engine_idp_debugging_email_address: "{{ product_name}}@{{ base_domain }}"
 
 # when using multiple certificates list them all (and their bundles) under tls.certificates
 tls:
