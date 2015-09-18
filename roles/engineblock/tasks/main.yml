@@ -26,6 +26,7 @@
   template: src={{ item }}.j2 dest=/etc/openconext/{{ item }}
   with_items:
     - engineblock.ini
+    - attributes-v2.1.1.json
   notify:
     - restart httpd
 
