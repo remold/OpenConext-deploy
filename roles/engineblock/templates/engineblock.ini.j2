@@ -73,3 +73,10 @@ email.idpDebugging.from.address = "noreply@{{ base_domain }}"
 email.idpDebugging.to.address = "{{ email.idpDebugging.to.address }}"
 email.idpDebugging.to.name = "{{ email_idpDebugging_to_name }}"
 openconext.termsOfUse = "{{ openconext_termsOfUse }}"
+
+{% if languageFiles_en is defined %}
+languageFiles.en = {{ languageFiles_en }}
+{% endif %}
+{% if languageFiles_nl is defined %}
+languageFiles.nl = {{ languageFiles_nl }}
+{% endif %}

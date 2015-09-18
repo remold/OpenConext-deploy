@@ -29,6 +29,14 @@
   notify:
     - restart httpd
 
+- name: Copy Language Files
+  template: src={{ item }}.j2 dest=/etc/openconext/languages/{{ item }}
+  with_items:
+    - en.php
+    - nl.php
+  notify:
+    - restart httpd
+
 - name: Run EngineBlock migrations
   command: ./bin/migrate
   args:
