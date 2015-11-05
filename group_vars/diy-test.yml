@@ -4,6 +4,8 @@ env: diy-test
 smtp_server: localhost
 error_mail_to: coin-logs-dev@list.surfnet.nl
 
+php_display_errors: 1
+
 databases:
   names:
     - teams
@@ -116,7 +118,7 @@ engine_version: 4.4.8
 
 engine_janus_cache_lifetime: 0
 
-engine_vovalidate_key : oauth_key
+engine_vovalidate_key: oauth_key
 
 engine_trusted_proxy_ips:
   - 127.0.0.1
@@ -176,7 +178,6 @@ teams:
   db_user: "teamsrw"
   db_password: "{{ mysql_passwords.teams }}"
   db_host: "{{ mysql_host }}"
-  mail_server: s01.dev.coin.surf.net
   group_name_context: "urn:collab:group:test.surfteams.nl:"
 
 engineblock:
@@ -390,7 +391,7 @@ loadbalancing:
   }
   engine_api: {
       port: 405,
-      #heartbeat: { url: "/", method: "GET" },
+      heartbeat: { url: "/", method: "GET" },
       servers: [
         { label: "engine_api_backend", ip: "{{ apache_app_listen_address.engine_api }}" },
       ]
