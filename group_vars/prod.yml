@@ -251,6 +251,8 @@ voot:
   crt_name: "{{ tls_https.crt_name }}"
   key_name: "{{ tls_https.key_name }}"
   resource_checking_secret: "{{ voot_resource_checking_secret }}"
+  oauth_checkToken_endpoint_url: "https://authz.{{ base_domain }}/oauth/check_token"
+  oauth_checkToken_clientId: "vootservice"
   externalGroupProviders:
     - {
         type: "grouper",
@@ -308,7 +310,7 @@ voot:
         timeoutMillis: 3000
       }
 voot_version: 1.4
-#voot_snapshot_timestamp: 20150420.135435-44
+#voot_snapshot_timestamp: 20151125.084209-1
 
 authz_admin_version: 1.3.1
 #authz_admin_snapshot_timestamp: 20150422.113215-61
@@ -474,6 +476,8 @@ loadbalancing:
     ]
   }
 
+nginx_backend_ip: 127.0.0.1
+
 # values below seem silly but on acc+prod these differ.
 nginx_ipv4_addresses:
   engine: 145.100.191.206
@@ -487,6 +491,7 @@ nginx_ipv4_addresses:
   authz_playground: 145.100.191.218
   voot: 145.100.191.212
   grouper: 145.100.191.211
+  pdp: 145.100.191.210
 
 nginx_config_templates:
   - engine

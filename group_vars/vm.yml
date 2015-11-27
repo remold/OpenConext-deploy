@@ -16,6 +16,7 @@ databases:
     - grouper
     - authz-server
     - pdp-server
+    - oidc-server
   users:
     - { name: teamsrw, db_name: teams, password: "{{ mysql_passwords.teams }}" }
     - { name: apirw, db_name: api, password: "{{ mysql_passwords.api }}" }
@@ -25,11 +26,13 @@ databases:
     - { name: grouperrw, db_name: grouper, password: "{{ mysql_passwords.grouper }}" }
     - { name: authz-serverrw, db_name: authz-server, password: "{{ mysql_passwords.authz_server }}" }
     - { name: pdp-serverrw, db_name: pdp-server, password: "{{ mysql_passwords.pdp_server }}" }
+    - { name: oidc-serverrw, db_name: oidc-server, password: "{{ mysql_passwords.oidc_server }}" }
 
 # on the VM we use the same certificate for all domains under base_domain.
 tls_https:
   key_name: star.{{ base_domain }}.key
   crt_name: star.{{ base_domain }}.pem
+  ca_name: star.{{ base_domain }}_ca.pem
   bundle_name: star.{{ base_domain }}_ca_bundle.pem
 
 apache_server_admin: apache@{{ base_domain }}
@@ -50,7 +53,8 @@ tls:
     - "{{ tls_https.crt_name }}"
   private_keys:
     - "{{ tls_https.key_name }}"
-
+  ca_certificates:
+    - "{{ tls_https.ca_name }}"
 engine_janus_user: engineblock
 
 engine_database_name: eb
@@ -140,6 +144,7 @@ tomcat_apps:
   - grouper
   - mujina-sp
   - mujina-idp
+  - oidc
 
 # shibboleth
 shibboleth_apps:
@@ -177,7 +182,7 @@ teams:
   db_user: "teamsrw"
   db_password: "{{ mysql_passwords.teams }}"
   db_host: "{{ mysql_host }}"
-  group_name_context: "urn:collab:group:test.surfteams.nl:"
+  group_name_context: "urn:collab:group:demo.openconext.org:"
 
 teams_version: 4.1.0
 # teams_snapshot_timestamp: 20150519.080724-3
@@ -247,7 +252,7 @@ apis:
   url: jdbc:mysql://{{ mysql_host }}:3306/apis
   password: "{{ mysql_passwords.apis }}"
   entity_id: https://apis.{{ base_domain }}
-  group_name: urn:collab:group:test.surfteams.nl:nl:surfnet:diensten:managementvo
+  group_name: "{{ teams.group_name_context }}org:openconext:teams:managementvo"
   admin_service:
     resource_server_key: authorization-server-admin
     resource_server_secret: "{{ apis_admin_service_resource_server_secret }}"
@@ -285,6 +290,8 @@ voot:
   crt_name: "{{ tls_https.crt_name }}"
   key_name: "{{ tls_https.key_name }}"
   resource_checking_secret: "{{ voot_resource_checking_secret }}"
+  oauth_checkToken_endpoint_url: "https://authz.{{ base_domain }}/oauth/check_token"
+  oauth_checkToken_clientId: "vootservice"
   externalGroupProviders:
     - {
         type: "grouper",
@@ -306,7 +313,7 @@ voot_debug: true
 ##
 authz_admin_version: 1.3.1
 #authz_admin_snapshot_timestamp: 20150422.113215-61
-authz_admin_group: urn:collab:group:surfnet.nl:etc:sysadmingroup
+authz_admin_group: "{{ teams.group_name_context }}org:openconext:teams:managementvo"
 authz_admin_debug: true
 authzadmin:
   crt_name: "{{ tls_https.crt_name }}"
@@ -388,16 +395,17 @@ authzadmin:
 ##
 # VM config for the authz-admin application
 ##
-authz_playground_version: 1
-#authz_playground_snapshot_timestamp: 20150423.100812-25
+authz_playground_version: 1.1
+authz_playground_snapshot_timestamp: 20151124.120116-1
 authz_playground_debug: true
 authzplayground:
   springapp_oauth_redirect: https://authz-playground.{{ base_domain }}/redirect
-  springapp_oauth_token_url: https://authz.{{ base_domain }}/oauth/token
-  springapp_client_id: cool_app_id
+  springapp_oauth_token_url: https://oidc.{{ base_domain }}/token
+  springapp_client_id: https@//oidc.local.surfconext.nl
   springapp_client_secret: "{{ authzplayground_springapp_client_secret }}"
   springapp_scopes: groups
-  springapp_authorize_url: https://authz.{{ base_domain }}/oauth/authorize
+  springapp_oidc_scopes: openid groups profile email organization userids entitlement
+  springapp_authorize_url: https://oidc.{{ base_domain }}/authorize
   springapp_resource_server_api_url: https://voot.{{ base_domain }}/me/groups
   crt_name: "{{ tls_https.crt_name }}"
   key_name: "{{ tls_https.key_name }}"
@@ -418,6 +426,19 @@ pdp:
   db_name: pdp-server
   spring_profiles_active: test
   cache_policies: false
+
+oidc_version: "0.1"
+oidc_snapshot_timestamp: "20151124.124915-9"
+oidc:
+  crt_name: "{{ tls_https.crt_name }}"
+  key_name: "{{ tls_https.key_name }}"
+  environment: vm
+  issuer: https://oidc.{{ base_domain }}/
+  db_user: oidc-serverrw
+  db_password: "{{ mysql_passwords.pdp_server }}"
+  db_host: "{{ mysql_host }}"
+  db_name: oidc-server
+  sp_entity_id: https://oidc.{{ base_domain }}
 
 loadbalancing:
   engine: {
@@ -518,6 +539,13 @@ loadbalancing:
         { label: "welcome_backend", ip: "192.168.66.79" },
     ]
   }
+  oidc: {
+    port: 10614,
+    heartbeat: { url: "/", method: "HEAD" },
+    servers: [
+      { label: "oidc_backend", ip: "192.168.66.79" },
+    ]
+  }
   pdp: {
       port: 613,
       heartbeat: { url: "/pdp/api/health", method: "GET" },
@@ -525,6 +553,8 @@ loadbalancing:
         { label: "pdp_backend", ip: "192.168.66.79" },
       ]
     }
+
+nginx_backend_ip: 127.0.0.1
 
 # values below seem silly but on acc+prod these differ.
 nginx_ipv4_addresses:
@@ -543,6 +573,7 @@ nginx_ipv4_addresses:
   mujina_idp: 192.168.66.78
   welcome: 192.168.66.78
   pdp: 192.168.66.78
+  oidc: 192.168.66.78
 
 nginx_config_templates:
   - welcome
@@ -560,3 +591,4 @@ nginx_config_templates:
   - profile
   - pdp
   - serviceregistry
+  - oidc
